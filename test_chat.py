@@ -15,3 +15,4 @@ def test_chat():
 if __name__ == "__main__":
     # We must mock an API key or use the user's API key
     test_chat()
+ 
