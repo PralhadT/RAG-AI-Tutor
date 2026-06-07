@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - AI Classroom{% endblock %}
+
+{% block content %}
+<div class="row mt-5 justify-content-between">
+    <!-- Left Column: Knowledge Base & Primary Action -->
+    <div class="col-md-6 col-lg-5 mb-4 animate-fade-rise pe-md-4">
+        <h1 class="font-serif text-dark fw-bold mb-2" style="font-size: 2.75rem; letter-spacing: -0.5px;">Your Knowledge Base</h1>
+        <p class="text-secondary mb-5" style="font-size: 1.1rem; line-height: 1.6;">Manage your study materials here. The AI tutor will strictly reference these uploaded documents to generate accurate, context-aware answers.</p>
+        
+        <div class="mb-5">
+            <a href="{{ url_for('chat.chat_page') }}" class="btn btn-dark btn-lg px-5 py-3 rounded-pill font-serif shadow-sm fs-4">
+                Start Chatting with AI &rarr;
+            </a>
+        </div>
+
+        <!-- File List (ChatGPT Pill Style) -->
+        <div class="text-start mt-4">
+            <h6 class="text-uppercase text-secondary small fw-bold mb-3 border-bottom pb-2" style="letter-spacing: 1px;">Uploaded Documents</h6>
+            {% if files %}
+                <div class="d-flex flex-wrap gap-2">
+                    {% for file in files %}
+                        <div class="d-inline-flex align-items-center bg-white border border-secondary rounded-pill px-3 py-2 shadow-sm animate-fade-rise-delay">
+                            <span class="small text-dark fw-medium me-3" style="font-size: 0.95rem;"><i class="text-muted me-2">📄</i>{{ file }}</span>
+                            <form action="{{ url_for('upload.delete_file', filename=file) }}" method="POST" class="m-0" onsubmit="return confirm('Delete this file?');">
+                                <button type="submit" class="btn btn-link text-danger p-0 border-0 text-decoration-none fw-bold fs-5" style="line-height: 1;">&times;</button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted py-4 px-3 bg-light rounded-4 border border-secondary border-dashed" style="font-size: 0.95rem;">No materials uploaded yet. Upload a document to get started.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Right Column: Upload Box (Wider to fit text) -->
+    <div class="col-md-6 col-lg-6 animate-fade-rise-delay">
+        <div class="card shadow-lg border-0 rounded-4 overflow-hidden bg-white">
+            <div class="card-body p-4 p-md-5">
+                <h3 class="font-serif text-dark mb-4 text-center fw-bold">Add Material</h3>
+                <form action="{{ url_for('upload.upload_file') }}" method="POST" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <!-- Removed form-control to prevent Bootstrap from clipping the text, increased width of parent -->
+                        <input class="w-100 bg-light border border-secondary rounded p-3 text-dark" type="file" id="file" name="file" accept=".pdf,.docx,.pptx,.txt" required>
+                        <div class="form-text text-muted mt-2 text-center" style="font-size: 0.85rem;">Supported: PDF, DOCX, PPTX, TXT</div>
+                    </div>
+                    <!-- Same button effect as Chat button (btn-dark, font-serif) but standard size to fit one line -->
+                    <button type="submit" class="btn btn-dark w-100 font-serif shadow-sm rounded-pill py-3 fs-5">Upload & Process</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

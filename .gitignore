@@ -1,0 +1,19 @@
+# Environments
+venv/
+env/
+.env
+
+# Database and Uploads
+database.db
+uploads/
+faiss_index_*/
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Temporary files
+scratch/
+.temp/

@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - AI Classroom{% endblock %}
+
+{% block content %}
+<div class="row mt-2">
+    <div class="col-12 mb-4">
+        <h2 class="fw-bold text-danger">⚙️ Admin Control Panel</h2>
+        <p class="text-muted">Manage system users and all uploaded study materials globally.</p>
+    </div>
+
+    <!-- Users Management Section -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-dark text-white pt-3 pb-2">
+                <h5 class="mb-0 fw-bold">👥 Registered Users</h5>
+            </div>
+            <div class="card-body">
+                {% if users %}
+                <ul class="list-group list-group-flush">
+                    {% for u in users %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ u.username }}</strong> <span class="badge bg-{{ 'warning' if u.role == 'admin' else 'secondary' }} ms-1">{{ u.role }}</span><br>
+                            <small class="text-muted">{{ u.email }} (ID: {{ u.id }})</small>
+                        </div>
+                        {% if u.role != 'admin' %}
+                        <form action="{{ url_for('admin_delete_user', user_id=u.id) }}" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure you want to ban and delete this user?');">Delete User</button>
+                        </form>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted mb-0">No users found.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Files Management Section -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-dark text-white pt-3 pb-2">
+                <h5 class="mb-0 fw-bold">📁 Global File System</h5>
+            </div>
+            <div class="card-body">
+                {% if files %}
+                <ul class="list-group list-group-flush">
+                    {% for f in files %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-bold">📄 {{ f.display_name }}</span><br>
+                            <small class="text-muted">Uploaded by User ID: {{ f.owner_id }}</small>
+                        </div>
+                        <form action="{{ url_for('admin_delete_file', filename=f.raw_filename) }}" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Delete this file globally?');">Delete File</button>
+                        </form>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted mb-0">No files uploaded yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
