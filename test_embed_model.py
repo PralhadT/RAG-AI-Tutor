@@ -8,3 +8,4 @@ print("e1.model:", e1.model)
 
 e2 = GoogleGenerativeAIEmbeddings(model="text-embedding-004")
 print("e2.model:", e2.model)
+ 
