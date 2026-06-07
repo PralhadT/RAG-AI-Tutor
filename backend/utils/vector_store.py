@@ -8,7 +8,7 @@ def get_embeddings_model():
     """Returns the lightweight Google Cloud Embeddings model.
     Instantiated per request to avoid cross-thread client closure errors."""
     api_key = os.environ.get("GOOGLE_API_KEY")
-    return GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=api_key)
+    return GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001", google_api_key=api_key)
 
 def create_and_save_vector_store(chunks, user_id):
     """

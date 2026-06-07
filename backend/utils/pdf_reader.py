@@ -53,5 +53,8 @@ def extract_text_from_pdf(file_path, user_id=None):
                 
     except Exception as e:
         print(f"Error reading PDF {file_path}: {e}")
+    finally:
+        if 'doc' in locals():
+            doc.close()
     
     return text
