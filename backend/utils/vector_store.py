@@ -1,13 +1,14 @@
 import os
 from langchain_community.vectorstores import FAISS
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 FAISS_INDEX_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'faiss_index')
 
 def get_embeddings_model():
-    """Returns a local HuggingFace embeddings model (Free, no API key needed).
+    """Returns the lightweight Google Cloud Embeddings model.
     Instantiated per request to avoid cross-thread client closure errors."""
-    return HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    api_key = os.environ.get("GOOGLE_API_KEY")
+    return GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=api_key)
 
 def create_and_save_vector_store(chunks, user_id):
     """
