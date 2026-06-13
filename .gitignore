@@ -1,9 +1,10 @@
-# Environments
+# Environments (NEVER push these — they are huge and machine-specific)
 venv/
+.venv/
 env/
 .env
 
-# Database and Uploads
+# Database and Uploads (user data, recreated at runtime)
 database.db
 uploads/
 faiss_index_*/
@@ -17,3 +18,7 @@ __pycache__/
 # Temporary files
 scratch/
 .temp/
+
+# OS files
+Thumbs.db
+.DS_Store
