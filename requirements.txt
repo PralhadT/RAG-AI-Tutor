@@ -29,6 +29,3 @@ numpy==2.4.6
 
 # Database
 SQLAlchemy==2.0.50
-
-#
-gunicorn==23.0.0
