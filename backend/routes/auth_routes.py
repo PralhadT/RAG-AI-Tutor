@@ -5,18 +5,18 @@ auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
-    """Handle user registration."""
+    """Handle user registration. All self-registered users are students."""
     if request.method == 'POST':
         username = request.form['username']
         email = request.form['email']
         password = request.form['password']
-        
+
         if create_user(username, email, password):
             flash('Registration successful! Please login.', 'success')
             return redirect(url_for('auth.login'))
         else:
             flash('Username or email already exists.', 'danger')
-            
+
     return render_template('register.html')
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
@@ -25,7 +25,7 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        
+
         user = verify_user(username, password)
         if user:
             session['user_id'] = user['id']
@@ -35,7 +35,7 @@ def login():
             return redirect(url_for('dashboard'))
         else:
             flash('Invalid username or password.', 'danger')
-            
+
     return render_template('login.html')
 
 @auth_bp.route('/logout')

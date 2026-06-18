@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 env_path = os.path.join(os.path.dirname(__file__), '..', '.env')
 load_dotenv(env_path)
 
-from flask import Flask, render_template, session, redirect, url_for
+from flask import Flask, render_template, session, redirect, url_for, flash  # flash added
 from routes.auth_routes import auth_bp
 from routes.upload_routes import upload_bp
 from routes.chat_routes import chat_bp
@@ -39,19 +39,18 @@ def dashboard():
     """User dashboard."""
     if 'user_id' not in session:
         return redirect(url_for('auth.login'))
-        
+
     user_id = str(session.get('user_id'))
     UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), '..', 'uploads')
-    
+
     # Get files uploaded by this user
     user_files = []
     if os.path.exists(UPLOAD_FOLDER):
         for filename in os.listdir(UPLOAD_FOLDER):
             if filename.startswith(user_id + '_'):
-                # remove the prefix for display
                 display_name = filename[len(user_id) + 1:]
                 user_files.append(display_name)
-                
+
     return render_template('dashboard.html', files=user_files)
 
 @app.route('/admin')
@@ -60,10 +59,10 @@ def admin_dashboard():
     if session.get('role') != 'admin':
         flash('Unauthorized Access! Admin privileges required.', 'danger')
         return redirect(url_for('dashboard'))
-        
+
     from models.user_model import get_all_users
     users = get_all_users()
-    
+
     UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), '..', 'uploads')
     all_files = []
     if os.path.exists(UPLOAD_FOLDER):
@@ -77,14 +76,14 @@ def admin_dashboard():
                     'display_name': display_name,
                     'owner_id': owner_id
                 })
-                
+
     return render_template('admin_dashboard.html', users=users, files=all_files)
 
 @app.route('/admin/delete_user/<int:user_id>', methods=['POST'])
 def admin_delete_user(user_id):
     if session.get('role') != 'admin':
         return redirect(url_for('dashboard'))
-        
+
     from models.user_model import delete_user
     delete_user(user_id)
     flash(f'User ID {user_id} has been deleted.', 'success')
@@ -94,7 +93,7 @@ def admin_delete_user(user_id):
 def admin_delete_file(filename):
     if session.get('role') != 'admin':
         return redirect(url_for('dashboard'))
-        
+
     UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), '..', 'uploads')
     file_path = os.path.join(UPLOAD_FOLDER, filename)
     if os.path.exists(file_path):

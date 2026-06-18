@@ -22,23 +22,19 @@ def init_db():
             role TEXT DEFAULT 'student'
         )
     ''')
-    
-    # Safely try to add the column if the table already exists
-    try:
-        conn.execute('ALTER TABLE users ADD COLUMN role TEXT DEFAULT "student"')
-    except sqlite3.OperationalError:
-        pass # Column already exists
-        
     conn.commit()
     conn.close()
 
 def create_user(username, email, password):
-    """Create a new user with a hashed password."""
+    """Create a new user. Role is always 'student' for self-registered users.
+    Use make_admin.py to promote a user to admin manually."""
     conn = get_db_connection()
     try:
         password_hash = generate_password_hash(password)
-        conn.execute('INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)',
-                     (username, email, password_hash))
+        conn.execute(
+            'INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)',
+            (username, email, password_hash, 'student')
+        )
         conn.commit()
         return True
     except sqlite3.IntegrityError:
@@ -51,7 +47,7 @@ def verify_user(username, password):
     conn = get_db_connection()
     user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
     conn.close()
-    
+
     if user and check_password_hash(user['password_hash'], password):
         return user
     return None
