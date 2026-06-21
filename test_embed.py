@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-load_dotenv
+load_dotenv 
 import google.generativeai as genai
 
 def list_models():
