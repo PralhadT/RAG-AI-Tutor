@@ -5,8 +5,7 @@ from utils.vector_store import load_vector_store
 
 def get_llm():
     """Returns the Groq language model instance for ultra-fast generation."""
-    # Switched to Mixtral 8x7b to bypass the exhausted Llama 3 70B daily token limit
-    return ChatGroq(model_name="mixtral-8x7b-32768", temperature=0.3, max_tokens=8000)
+    return ChatGroq(model_name="openai/gpt-oss-120b", temperature=0.3, max_tokens=8000)
 
 def build_prompt(mode, custom_instruction=""):
     """
@@ -198,19 +197,22 @@ def answer_question(user_id, question, mode="Simple", custom_instruction="", ext
     prompt = build_prompt(mode, custom_instruction)
     formatted_prompt = prompt.format(context=context, question=question)
     
-    # Priority list of free models to try. If one hits a rate limit or is decommissioned, the system automatically falls back to the next!
+    # Priority list of free models to try on Groq. If one hits a rate limit, is decommissioned, or not found, fall back to the next!
     FALLBACK_MODELS = [
-        "llama-3.3-70b-versatile", # Primary: Most powerful
-        "llama3-70b-8192",         # Fallback 1: High capability
-        "gemma2-9b-it",            # Fallback 2: Google's intelligent Gemma
-        "llama-3.1-8b-instant"     # Fallback 3: Super fast, very high rate limit
+        "openai/gpt-oss-120b",     # Groq Free Tier: Flagship high-intelligence model
+        "qwen/qwen3.8-27b",        # Groq Free Tier: High reasoning, fast
+        "openai/gpt-oss-20b",      # Groq Free Tier: Ultra-fast & high throughput
+        "allam-2-7b",              # Groq Free Tier
+        "llama-3.3-70b-versatile", # Original repo model (Groq Free Tier)
+        "llama-3.1-8b-instant",    # Original repo model (Groq Free Tier)
+        "gemma2-9b-it",            # Original repo model (Groq Free Tier)
+        "llama3-70b-8192"          # Original repo model (Groq Free Tier)
     ]
     
     last_error = ""
     for model_name in FALLBACK_MODELS:
         try:
             print(f"Attempting to generate answer using {model_name}...")
-            # Reduced max_tokens to 4000 to stay safely under Groq's 6000 TPM limit
             llm = ChatGroq(model_name=model_name, temperature=0.3, max_tokens=4000)
             response = llm.invoke(formatted_prompt)
             
@@ -222,14 +224,35 @@ def answer_question(user_id, question, mode="Simple", custom_instruction="", ext
             
         except Exception as e:
             error_str = str(e)
-            # If the error is a Rate Limit (429) OR Model Decommissioned (400), catch it and loop to the next model
-            if "429" in error_str or "rate limit" in error_str.lower() or "400" in error_str or "decommissioned" in error_str.lower():
-                print(f"{model_name} unavailable (Rate Limit / Decommissioned). Automatically falling back to the next model...")
+            # If the error is a Rate Limit (429), Decommissioned (400), or Model Not Found (404), catch it and loop to the next model
+            if any(term in error_str.lower() for term in [
+                "429", "rate limit", "400", "404", "decommissioned",
+                "model_not_found", "does not exist", "not have access", "not found"
+            ]):
+                print(f"{model_name} unavailable ({error_str}). Automatically falling back to the next model...")
                 last_error = error_str
                 continue
             else:
-                # If it's a completely different error (e.g. no internet), stop and show it
-                return f"Error generating answer: {error_str}"
+                last_error = error_str
+                print(f"Unexpected error with {model_name}: {error_str}. Trying next model...")
+                continue
+                
+    # Fallback to Google Gemini if all Groq models are exhausted or unavailable
+    google_api_key = os.environ.get("GOOGLE_API_KEY")
+    if google_api_key:
+        for gemini_model in ["gemini-3.5-flash", "gemini-3.8-flash"]:
+            try:
+                print(f"Groq models exhausted. Attempting fallback using Google Gemini ({gemini_model})...")
+                from langchain_google_genai import ChatGoogleGenerativeAI
+                llm = ChatGoogleGenerativeAI(model=gemini_model, temperature=0.3, google_api_key=google_api_key)
+                response = llm.invoke(formatted_prompt)
+                content = response.content
+                if isinstance(content, list):
+                    content = " ".join([str(c.get("text", "")) if isinstance(c, dict) else str(c) for c in content])
+                return str(content)
+            except Exception as e:
+                print(f"Gemini {gemini_model} fallback failed: {e}")
+                last_error = str(e)
                 
     # If the loop finishes and ALL models are unavailable
     return f"All AI models are currently overwhelmed with traffic. Please try again in an hour or two. (Last Error: {last_error})"
